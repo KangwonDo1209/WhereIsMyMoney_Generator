@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Thumbnail Preview Generator</title>
+        <style>
+            body {
+                background: #f7f7fa;
+                font-family: "Pretendard", "Malgun Gothic", Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                max-width: 1280px;
+                min-width: 1280px;
+                margin: 40px auto;
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+                padding: 32px 24px 24px 24px;
+            }
+            .file-section {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 32px;
+            }
+            .file-section label {
+                font-weight: bold;
+                margin-bottom: 8px;
+                font-size: 1.1em;
+            }
+            #photoInput {
+                padding: 8px 0;
+            }
+            .preview-section {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: #e9e9f0;
+                border-radius: 12px;
+                padding: 24px;
+            }
+            #previewCanvas {
+                border-radius: 8px;
+                background: #222;
+                max-width: 100%;
+                height: auto;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="file-section">
+                <label for="photoInput">내 돈 다 어디감? 생성기</label>
+                <p>사진 저장 가능</p>
+                <input type="file" id="photoInput" accept="image/*" />
+            </div>
+            <div class="preview-section">
+                <canvas id="previewCanvas"></canvas>
+            </div>
+        </div>
+        <script>
+            const canvas = document.getElementById("previewCanvas");
+            const ctx = canvas.getContext("2d");
+            const photoInput = document.getElementById("photoInput");
+
+            const defaultImg = new Image();
+            let photoImg = new Image();
+            defaultImg.src = "./assets/default.png";
+            // 두 이미지가 모두 로드된 후 합성
+            let loaded = 0;
+            function tryDraw() {
+                if (loaded === 2) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // 캔버스 크기를 default.png에 맞춤
+                    canvas.width = defaultImg.width;
+                    canvas.height = defaultImg.height;
+                    ctx.drawImage(defaultImg, 0, 0);
+                    // photo.png를 먼저 그림 (뒤에 배치)
+                    const len = 300;
+                    const newWidth = len;
+                    const newHeight = len * (photoImg.height / photoImg.width);
+                    // 캔버스에 photoImg를 그리기
+                    // 위치는 (500, 365)로 설정
+                    ctx.drawImage(
+                        photoImg,
+                        0,
+                        0,
+                        photoImg.width,
+                        photoImg.height,
+                        310, // x 위치
+                        260, // y 위치
+                        newWidth,
+                        newHeight
+                    );
+                }
+            }
+
+            defaultImg.onload = function () {
+                loaded++;
+            };
+
+            photoInput.addEventListener("change", function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    photoImg = new Image();
+                    photoImg.onload = function () {
+                        loaded = 1;
+                        loaded++;
+                        tryDraw();
+                    };
+                    photoImg.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        </script>
+    </body>
+</html>
